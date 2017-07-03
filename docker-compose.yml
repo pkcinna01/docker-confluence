@@ -1,0 +1,31 @@
+version: '2'
+
+services:
+  confluence:
+    #image: xmonit/confluence
+    image: atlassian/confluence-server
+    restart: on-failure:5
+    ports:
+      - "8090:8090"
+    depends_on:
+      - database
+    volumes:
+      # CONFLUENCE_INSTALL cannot be a directory mount because it will mask the image data
+      # Using a named data volume since it behaves as a union file system overlay
+      - confluence-install:/opt/atlassian/confluence
+      - confluence-home:/var/atlassian/application-data/confluence
+
+  database:
+    image: postgres:9.4
+    restart: on-failure:5
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+
+volumes:
+  confluence-install:
+    driver: local
+  confluence-home:
+    driver: local
+  postgres-data:
+    driver: local
